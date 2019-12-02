@@ -1,13 +1,18 @@
+use std::convert::TryInto;
 use std::fs::File;
 use std::io;
 use std::io::prelude::*;
 
-fn fuel(m: usize) -> usize {
-    m / 3 - 2
+fn fuel(m: usize) -> isize {
+    (m / 3 - 2) as isize
 }
 
-fn sum_of_vec(v: Vec<usize>) -> usize {
-    v.iter().fold(0, |e, acc| acc + e)
+fn fuel_rec(m: usize) -> isize {
+    let result = fuel(m);
+    match result {
+        n if n > 0 => n + fuel_rec(n.try_into().unwrap()),
+        n => n,
+    }
 }
 
 fn main() -> io::Result<()> {
@@ -15,7 +20,7 @@ fn main() -> io::Result<()> {
     let mut buffer = String::new();
     f.read_to_string(&mut buffer)?;
 
-    let mass: Vec<usize> = buffer
+    let sum_of_mass: isize = buffer
         .split('\n')
         .map(|m| {
             let value = m.parse::<usize>();
@@ -25,9 +30,23 @@ fn main() -> io::Result<()> {
                 0
             }
         })
-        .collect();
+        .sum();
 
-    println!("{}", sum_of_vec(mass));
+    println!("01. {}", sum_of_mass);
+
+    let sum_of_mass: isize = buffer
+        .split('\n')
+        .map(|m| {
+            let value = m.parse::<usize>();
+            if let Ok(value) = value {
+                fuel_rec(value)
+            } else {
+                0
+            }
+        })
+        .sum();
+
+    println!("02. {}", sum_of_mass);
 
     Ok(())
 }
