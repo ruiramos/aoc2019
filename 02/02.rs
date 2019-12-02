@@ -14,26 +14,26 @@ fn main() {
 
     for test in test_inputs {
         if let &[input, expected] = &*test {
-            let mut instructions = Instruction::new(input);
-            instructions.execute();
-            assert_eq!(instructions.to_string(), expected);
+            let mut computer = Computer::new(input);
+            computer.execute();
+            assert_eq!(computer.to_string(), expected);
         }
     }
 
     // all tests ok!
-    let mut instructions = Instruction::new(&get_input(12, 2));
-    instructions.execute();
+    let mut computer = Computer::new(&get_input(12, 2));
+    computer.execute();
 
-    println!("{}", split_to_comma(instructions.to_string()));
+    println!("{}", split_to_comma(computer.to_string()));
 
     let target = 19690720;
     let mut values = (None, None);
 
     for i in 0..99 {
         for j in 0..99 {
-            let mut instructions = Instruction::new(&get_input(i, j));
-            instructions.execute();
-            if instructions.get_first_value().parse::<usize>().unwrap() == target {
+            let mut computer = Computer::new(&get_input(i, j));
+            computer.execute();
+            if computer.get_first_value().parse::<usize>().unwrap() == target {
                 values = (Some(i), Some(j));
             }
         }
@@ -42,13 +42,13 @@ fn main() {
     println!("{:?}", values);
 }
 
-struct Instruction {
+struct Computer {
     inst: Vec<usize>,
 }
 
-impl Instruction {
-    pub fn new(input: &str) -> Instruction {
-        Instruction {
+impl Computer {
+    pub fn new(input: &str) -> Computer {
+        Computer {
             inst: input.split(',').map(|s| s.parse().unwrap()).collect(),
         }
     }
@@ -91,7 +91,7 @@ impl Instruction {
     }
 }
 
-impl Display for Instruction {
+impl Display for Computer {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
         let mut state = String::new();
         for (i, el) in self.inst.iter().enumerate() {
