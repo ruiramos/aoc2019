@@ -19,7 +19,7 @@ testInputs.forEach(([input, expected]) => {
 const fuels = massArray.map(m => fuel(m)).filter(f => !!f);
 const sum = (a) => a.reduce((acc, el) => acc + el, 0);
 
-console.log(JSON.stringify(fuels), sum(fuels));
+console.log('01.', sum(fuels));
 
 const fuels2 = massArray.map(m => {
   let result = 0;
@@ -33,4 +33,4 @@ const fuels2 = massArray.map(m => {
   return result;
 })
 
-console.log(JSON.stringify(fuels2), sum(fuels2));
+console.log('02.', sum(fuels2));

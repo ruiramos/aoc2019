@@ -11,7 +11,7 @@ fn fuel_rec(m: usize) -> isize {
     let result = fuel(m);
     match result {
         n if n > 0 => n + fuel_rec(n.try_into().unwrap()),
-        n => n,
+        _ => result,
     }
 }
 
