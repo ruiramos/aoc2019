@@ -44,6 +44,7 @@ fn main() {
     f.read_to_string(&mut buffer).unwrap();
     let inputs: Vec<&str> = buffer.trim().split('\n').collect();
 
+
     let w1 = Wire::new(inputs[0]);
     let w2 = Wire::new(inputs[1]);
     let inter = w1.intercept(&w2);
