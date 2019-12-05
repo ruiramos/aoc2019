@@ -58,8 +58,8 @@ fn two_adjacent_group(n: u32) -> bool {
     let mut counter = 0;
 
     while i < chars.len() {
-        j = i;
-        counter = 0;
+        j = i + 1;
+        counter = 1;
 
         while j < chars.len() && chars[i] == chars[j] {
             counter += 1;
