@@ -42,7 +42,7 @@ function decode(data){
     let pixel = '2';
     for(let j = 0; j < layers; j++){
       let index = i + j * (w*h);
-      if(data[index] !== '2'){
+      if(data[index] != '2'){
         pixel = data[index];
         break;
       }
@@ -55,21 +55,38 @@ function decode(data){
   process.stdout.write('\n');
 }
 
+let la = [[1,0], [2,0], [3,0], [0,1], [4,1], [0,2], [4,2], [0,3], [1,3], [2,3], [3,3], [4,3], [0,4], [4,4], [0,5], [4,5]];
+let le = [[0,0], [1, 0], [2, 0], [3, 0], [4,0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [1, 5], [2, 5], [3, 5], [4,5], [1, 2], [2, 2]];
+let lf = [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5], [1,0], [2,0], [3,0], [4,0], [1,2], [2,2], [3,2], [4,2]];
 let li = [[0,0], [1,0], [2,0], [1,1], [1,2], [1,3], [1,4], [1,5], [0,5],[2,5]];
+let ll = [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5], [1,5], [2,5], [3,5], [4,5]];
 let ln = [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5], [1,0], [2,1], [3,2], [4,3], [5,4], [6,5], [6,4],[6,3],[6,2],[6,1], [6,0]];
-let le = [[0, 0], [1, 0], [2, 0], [3, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [1, 5], [2, 5], [3, 5], [1, 2], [2, 2]];
-let ls = [[1, 0], [0, 1], [0, 2], [3, 0], [2, 0], [1, 2], [2, 2], [3,2], [3, 3], [3, 4], [3, 5], [2, 5], [1, 5]];
+let lo = [[0,1], [0,2], [0,3], [0,4], [1,0], [2,0], [3,0], [4,0], [1,5], [2,5], [3,5], [4,5], [5,4], [5,3], [5,2], [5,1]];
+let lp = [[0,0], [0,1], [0,2], [0,3], [0,4], [0,5], [1,0], [2,0], [3,0], [4,0], [4,1], [4,2], [3,2], [2,2], [1,2]];
+let ls = [[0,0],[1,0], [0, 1], [0, 2], [3, 0], [2, 0], [1, 2], [2, 2], [3,2], [3, 3], [3, 4], [3, 5], [2, 5], [1, 5], [0,5]];
 
 function space(coords, spacing){
 	return coords.map(([x,y]) => [x+spacing, y]);
 }
 
-let e = encode([
-  ...space(li, 0),
-  ...space(ln, 4),
-  ...space(le, 12),
-  ...space(ls, 17)
-], 100, w, h);
+function assemble(phrase){
+  let pos = 0;
+  let result = phrase.flatMap((letter, i) => {
+    if(i > 0){
+      pos += max_letter_width(phrase[i-1]) + 2;
+    }
+    return space(letter, pos);
+  });
+  return result;
+}
+
+function max_letter_width(letter){
+  return Math.max(...letter.map(([x]) => x)) || 0;
+}
+
+let e = encode(assemble([lo, ll, la]), 100, w, h);
+
+fs.writeFileSync('./image.jpg.txt', e.join(''));
 
 decode(e);
 
@@ -81,19 +98,29 @@ function encode(white_pixels, layers, w, h){
       let is_white = is_white_pixel(point, white_pixels);
       let is_right_color = false;
 
-      for(let i = 0; i < layers; i++){
+      for(let i = layers - 1; i >= 0; i--){
         let index = x + (y*w) + (i * w * h);
 
-        if(Math.random() < 1/layers || (!is_right_color && i == layers - 1)){
-          is_right_color = true;
-          if(is_white){
-            answer[index] = '1';
-          } else {
-            answer[index] = '0';
-          }
+        if(!is_right_color && Math.random() < .65){
+          answer[index] = is_white ? 1 : 0;
+        } else if (is_right_color && Math.random() < .85){
+          answer[index] = 2;
         } else {
-          answer[index] = '2';
+          answer[index] = !is_white ? 1 : 0;
         }
+
+        let pixel = answer[index];
+
+        if(is_white && pixel == 1 || !is_white && pixel == 0){
+          is_right_color = true;
+        } else if(pixel != 2){
+          is_right_color = false;
+        }
+
+        if(!is_right_color && i == 0){
+          answer[index] = is_white ? 1 : 0;
+        }
+
       }
 
     }
