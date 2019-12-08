@@ -38,7 +38,7 @@ fn main() {
     }
 }
 
-fn combine_layers(layers: Vec<String>) -> String {
+fn combine_layers(layers: Vec<&str>) -> String {
     let mut combined = String::new();
     let len = layers[0].len();
 
@@ -49,7 +49,7 @@ fn combine_layers(layers: Vec<String>) -> String {
     combined
 }
 
-fn merge_layers(layers: &Vec<String>, pos: usize) -> char {
+fn merge_layers(layers: &Vec<&str>, pos: usize) -> char {
     for layer in layers {
         let c = layer.chars().nth(pos).unwrap();
         if c != '2' {
@@ -59,19 +59,15 @@ fn merge_layers(layers: &Vec<String>, pos: usize) -> char {
     '2'
 }
 
-fn split_at(data: &String, len: usize) -> Vec<String> {
-    let mut layers: Vec<String> = vec![];
-    let mut i = 0;
-
-    while i + len <= data.len() {
-        layers.push(data[i..i + len].to_string());
-        i += len;
-    }
-
-    layers
+fn split_at(data: &String, len: usize) -> Vec<&str> {
+    data.as_bytes()
+        .chunks(len)
+        .map(std::str::from_utf8)
+        .collect::<Result<Vec<&str>, _>>()
+        .unwrap()
 }
 
-fn number_of(c: char, s: &String) -> usize {
+fn number_of(c: char, s: &str) -> usize {
     s.chars().filter(|el| *el == c).count()
 }
 
