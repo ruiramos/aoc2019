@@ -1,5 +1,5 @@
+use day_07::perms::Heap;
 use day_07::Circuit;
-use permutohedron::Heap;
 use std::fs::File;
 use std::io::Read;
 
@@ -22,9 +22,9 @@ fn run_first() {
 
     let data = get_program();
     let mut max = 0;
-    let mut phase: Vec<usize> = (0..=4).collect();
+    let phase: Vec<u32> = (0..=4).collect();
 
-    for perm in Heap::new(&mut phase) {
+    for perm in Heap::perms(phase) {
         let mut circuit = Circuit::new(&data, perm);
         let result = circuit.execute();
         max = isize::max(result, max);
@@ -45,9 +45,9 @@ fn run_second() {
 
     let data = get_program();
     let mut max = 0;
-    let mut phase: Vec<usize> = (5..=9).collect();
+    let phase: Vec<u32> = (5..=9).collect();
 
-    for perm in Heap::new(&mut phase) {
+    for perm in Heap::perms(phase) {
         let mut circuit = Circuit::new(&data, perm);
         let result = circuit.exec_loop();
         max = isize::max(result, max);
@@ -59,7 +59,7 @@ fn run_second() {
 struct Test {
     i: String,
     r: isize,
-    p: [usize; 5],
+    p: [u32; 5],
 }
 
 fn get_test_data() -> Vec<Test> {

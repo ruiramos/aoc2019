@@ -1,12 +1,14 @@
 use std::fmt::Display;
 use std::io::{self, BufRead};
 
+pub mod perms;
+
 pub struct Circuit {
     amps: Vec<Computer>,
 }
 
 impl Circuit {
-    pub fn new(input: &str, phases: Vec<usize>) -> Circuit {
+    pub fn new(input: &str, phases: Vec<u32>) -> Circuit {
         let mut amps = Vec::new();
 
         for i in 0..phases.len() {
