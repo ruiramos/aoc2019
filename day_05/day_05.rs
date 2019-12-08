@@ -2,7 +2,7 @@ use std::cmp;
 use std::convert::TryInto;
 use std::fmt::Display;
 use std::fs::File;
-use std::io::{self, BufRead, Read};
+use std::io::{self, BufRead, Read, Write};
 
 fn main() {
     /*
@@ -147,6 +147,9 @@ impl Display for Computer {
 }
 
 fn get_input() -> isize {
+    print!("> ");
+    io::stdout().flush().unwrap();
+
     let stdin = io::stdin();
     let line1 = stdin.lock().lines().next().unwrap().unwrap();
     line1.parse().expect("Expected a number")

@@ -77,7 +77,3 @@ fn read_data() -> String {
     f.read_to_string(&mut buffer).unwrap();
     String::from(buffer.trim())
 }
-
-fn read_test_data() -> (String, usize, usize) {
-    (String::from("0222112222120000"), 2, 2)
-}
