@@ -4,6 +4,7 @@ use std::io::{self, BufRead};
 
 pub mod vis;
 
+/*
 pub struct Circuit {
     amps: Vec<Computer>,
 }
@@ -47,6 +48,7 @@ impl Circuit {
         }
     }
 }
+*/
 
 pub enum InputMode {
     Stdin,
@@ -88,7 +90,11 @@ impl Computer {
         }
     }
 
-    pub fn execute(&mut self) {
+    pub fn execute(
+        &mut self,
+        send_output: &mut dyn FnMut(isize),
+        get_input: &mut dyn FnMut() -> isize,
+    ) {
         while self.i_count < self.inst.len() {
             let op = self.inst.get(&self.i_count).expect("Error unwrapping op");
             let opcode: isize = op % 100;
@@ -115,15 +121,16 @@ impl Computer {
                 }
                 3 => {
                     let dest = self.resolve_destination(self.i_count + 1, params.pop());
-                    let input = self.get_input();
+                    let input = get_input(); //self.get_input();
                     self.inst.insert(dest, input);
                     self.i_count += 2;
                 }
                 4 => {
                     let result = self.get_value_with_mode(self.i_count + 1, params.pop());
                     //println!("{}", result);
+                    //self.output = Some(result);
+                    send_output(result);
                     self.i_count += 2;
-                    self.output = Some(result);
                     return;
                 }
                 5 | 6 => {

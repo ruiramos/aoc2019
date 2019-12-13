@@ -1,8 +1,10 @@
 use day_13::vis::{App, Pixel};
 use day_13::{Computer, InputMode};
+use std::cell::RefCell;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::Read;
+use std::io::{self, BufRead, Read, Write};
+use std::rc::Rc;
 use std::sync::mpsc;
 use std::sync::mpsc::{Receiver, Sender};
 use std::thread;
@@ -17,6 +19,8 @@ use piston::window::WindowSettings;
 use sdl2_window::Sdl2Window;
 
 fn main() {
+    run_first();
+
     // Change this to OpenGL::V2_1 if not working.
     let opengl = OpenGL::V3_2;
 
@@ -41,8 +45,6 @@ fn main() {
         run_second(tx);
     });
 
-    processing.join().unwrap();
-
     let mut events = Events::new(EventSettings::new());
     while let Some(e) = events.next(window) {
         if let Some(args) = e.render_args() {
@@ -54,58 +56,63 @@ fn main() {
             app.update(&args, p);
         }
     }
+
+    processing.join().unwrap();
 }
 
 fn run_second(tx: Sender<Pixel>) {
     let mut data = get_program();
     data.replace_range(0..1, "2");
 
-    //let mut inst: HashMap<(isize, isize), usize> = HashMap::new();
-
     let mut computer = Computer::new(&data, InputMode::Args, vec![]);
 
-    let mut ball_x = None;
-    let mut paddle_x = None;
+    let ball_x = Rc::new(RefCell::new(0));
+    let paddle_x = Rc::new(RefCell::new(0));
+
+    let mut instruction = vec![];
 
     while !computer.is_terminated() {
-        computer.execute();
-        let x = computer.get_output().unwrap();
-        computer.execute();
-        let y = computer.get_output().unwrap();
-        computer.execute();
-        let op = computer.get_output().unwrap();
+        computer.execute(
+            //output fn
+            &mut |output| {
+                instruction.push(output);
+                if instruction.len() == 3 {
+                    let (x, y, op) = (instruction[0], instruction[1], instruction[2]);
 
-        tx.send(Pixel::new(x, y, op as usize)).unwrap();
+                    tx.send(Pixel::new(x, y, op as usize)).unwrap();
 
-        if op == 3 {
-            paddle_x = Some(x);
-        } else if op == 4 {
-            ball_x = Some(x);
-        }
+                    if op == 3 {
+                        *paddle_x.borrow_mut() = x;
+                    } else if op == 4 {
+                        *ball_x.borrow_mut() = x;
+                    } else if x == -1 {
+                        println!("score: {}", op);
+                    }
 
-        if paddle_x.is_some() && ball_x.is_some() {
-            let bx = ball_x.unwrap();
-            let px = paddle_x.unwrap();
-            if px > bx {
-                computer.set_input(-1);
-            } else if px < bx {
-                computer.set_input(1);
-            } else {
-                computer.set_input(0);
-            }
-        } else {
-            computer.set_input(0);
-        }
+                    instruction = vec![];
+                }
+            },
+            // input fn
+            &mut || -> isize {
+                /* play via stdin
+                let stdin = io::stdin();
+                let line1 = stdin.lock().lines().next().unwrap().unwrap();
+                print!("> ");
+                io::stdout().flush();
+                return line1.parse().expect("Expected a number");
+                */
 
-        //inst.insert((x, y), op as usize);
-
-        /*
-        if inst.values().find(|op| **op == 4).is_some()
-            && inst.values().find(|op| **op == 3).is_some()
-        {
-            output(&inst);
-        }
-        */
+                let bx = *ball_x.borrow();
+                let px = *paddle_x.borrow();
+                if px > bx {
+                    -1
+                } else if px < bx {
+                    1
+                } else {
+                    0
+                }
+            },
+        );
     }
 }
 
@@ -135,22 +142,26 @@ fn output(inst: &HashMap<(isize, isize), usize>) {
 
 fn run_first() {
     let mut inst: HashMap<usize, usize> = HashMap::new();
+    let mut instruction = vec![];
 
     let mut computer = Computer::new(&get_program(), InputMode::Args, vec![]);
 
-    loop {
-        computer.execute();
-        let x = computer.get_output();
-        computer.execute();
-        let y = computer.get_output();
-        computer.execute();
-        let op = computer.get_output();
+    while !computer.is_terminated() {
+        computer.execute(
+            //output fn
+            &mut |output| {
+                instruction.push(output);
+                if instruction.len() == 3 {
+                    let (x, y, op) = (instruction[0], instruction[1], instruction[2]);
 
-        *inst.entry(op.unwrap() as usize).or_insert(0) += 1;
+                    *inst.entry(op as usize).or_insert(0) += 1;
 
-        if computer.is_terminated() {
-            break;
-        }
+                    instruction = vec![];
+                }
+            },
+            // input fn
+            &mut || -> isize { 0 },
+        );
     }
 
     println!("{:?}", inst.get(&2));
