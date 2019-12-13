@@ -47,7 +47,7 @@ fn calc_period(c: Vec<isize>) -> usize {
             .iter()
             .skip(min_index)
             .position(|e| *e == first)
-            .expect("cant find element")
+            .expect("cant find element again")
             + min_index;
         for i in 0..repeat_idx {
             if c[i] != c[repeat_idx + i] {
